@@ -9,11 +9,28 @@ class Director
   @@STRFONTSIZE = 32
   @@exitFlag = 0
   @@font = Font.new(28)
+  @@mouse = Sprite.new(0, 0, Image.new(10, 10, C_WHITE))
+  @@menu0 = Menu.new(Window.width / 4, Window.height / 2, "Push Mouse", 64)
+  @@menu1 = [
+    Menu.new(Window.width * 0 / 3, Window.height / 2, "3", 92),
+    Menu.new(Window.width * 1 / 3, Window.height / 2, "5", 92),
+    Menu.new(Window.width * 2 / 3, Window.height / 2, "7", 92)
+  ]
+  @@menu2 = [
+    Menu.new(Window.width * 0 / 4, Window.height / 2, "Normal", 30),
+    Menu.new(Window.width * 1 / 4, Window.height / 2, "Handicap", 30),
+    Menu.new(Window.width * 2 / 4, Window.height / 2, "Weak", 30),
+    Menu.new(Window.width * 3 / 4, Window.height / 2, "Revolution", 30)
+  ]
+  @@menu3 = Menu.new(Window.width / 3, Window.height / 2, "Start", 64)
+
+  def initialize
+    @menu = 0
+  end
 
   def init
     @game = Othello.new
     @manturn = BLACK_TURN
-    @scene = 0
     @finish = false
     @putflag = false
   end
@@ -23,23 +40,40 @@ class Director
     @board_back = Image.new(Window.width, Window.height, C_BLACK)
   end
 
-  def initSE
-  
-  end
-
   def waitDisp
   
   end
 
   def title
-    Window.draw(0, 0, @scene_back)
-    if Input.mouse_push?(M_LBUTTON)
-      init
-      showBoard
-      Window.draw_font(@@rx, @@ey / 2 - 20, "GAME START!!", @@font)
-      $scene = SCENE::GAME
-      $mode = MODE::NORMAL
-      $maxdepth = 3
+    Window.draw(0, 0, Image[:title_back])
+    @@mouse.x, @@mouse.y = Input.mouse_pos_x, Input.mouse_pos_y
+    case @menu
+    when MENU::TITLE
+      if Input.mouse_push?(M_LBUTTON) and @@mouse === @@menu0
+        @menu = MENU::DEPTH
+      end
+      @@menu0.draw
+    when MENU::DEPTH
+      if Input.mouse_push?(M_LBUTTON) and @@mouse === @@menu1
+        @menu = MENU::MODE
+        $maxdepth = 3
+      end
+      Menu.draw(@@menu1)
+    when MENU::MODE
+      if Input.mouse_push?(M_LBUTTON) and @@mouse === @@menu2
+        @menu = MENU::START
+        $mode = MODE::NORMAL
+      end
+      Menu.draw(@@menu2)
+    when MENU::START
+      if Input.mouse_push?(M_LBUTTON) and @@mouse === @@menu3
+        @menu = MENU::TITLE
+        init
+        showBoard
+        Window.draw_font(@@rx, @@ey / 2 - 20, "GAME START!!", @@font)
+        $scene = SCENE::GAME
+      end
+      @@menu3.draw
     end
   end
 
@@ -71,7 +105,7 @@ class Director
   def showBoard
     ry = 40
     rdy = @@STRFONTSIZE + 5
-    #Window.draw(0, 0, @board_back)
+    Window.draw(0, 0, Image[:game_back])
     Window.draw_box_fill(@@sx, @@sy, @@ex, @@ey, C_GREEN)
     SIDE.times do |x|
       Window.draw_line(@@sx + @@d * x, @@sy, @@sx + @@d * x, @@sy + @@d * SIDE, C_BLACK)

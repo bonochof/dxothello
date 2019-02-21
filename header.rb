@@ -27,9 +27,6 @@ end
 def opponent (turn)
   (turn + 1) % 2
 end
-# true, false
-#TRUE = 1
-#FALSE = 0
 # AI
 INFINITY = 1000 # 十分大きい数を無限大として扱う
 SEARCH_LIMIT_DEPTH = 128 # 探索深さの上限
@@ -47,4 +44,11 @@ WINDOW_SIZE_Y = 480
 module SCENE
   TITLE = 0
   GAME = 1
+end
+# MENU
+module MENU
+  TITLE = 0
+  DEPTH = 1
+  MODE = 2
+  START = 3
 end
