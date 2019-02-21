@@ -1,4 +1,5 @@
 class Othello
+  attr_accessor :turn, :ply, :stonenum, :nextmove
   def initialize
     @evalboard0 = [
       0,   0,   0,   0,   0,   0,   0,   0,   0,   0,
@@ -43,6 +44,7 @@ class Othello
       @board[11] = @board[18] = @board[81] = @board[88] = W
     end
     @history = Array.new(SEARCH_LIMIT_DEPTH).map{ Position.new }
+    @nextmove = nil
   end
 
   def getPosition (x, y)
@@ -71,19 +73,19 @@ class Othello
 
   def generateMoves (moves)
     num = 0
-    for pos in 0..BOARDSIZE
+    BOARDSIZE.times do |pos|
       if isLegalMove(pos)
         moves[num] = pos
         num += 1
       end
     end
-    return num
+    return [moves, num]
   end
 
   def isTerminalNode
     moves = Array.new(MOVENUM)
     @turn = opponent(@turn)
-    num = generateMoves(moves)
+    moves, num = generateMoves(moves)
     @turn = opponent(@turn)
     return true if num == 0
     return false
@@ -102,9 +104,10 @@ class Othello
 
   def getEvaluationValue
     moves = Array.new(MOVENUM)
-    value = generateMoves(moves)
+    moves, value = generateMoves(moves)
     @turn = opponent(@turn)
-    value -= generateMoves(moves)
+    moves, tmp = generateMoves(moves)
+    value -= tmp
     @turn = opponent(@turn)
     value *= 20
     for pos in 11..88
@@ -145,8 +148,8 @@ class Othello
     opponent_color = turncolor(opponent(@turn))
     count = 0
     rev_count = 0
-    @history[depth].board = Marshal.load(Marshal.dump(@board))
-    @history[depth].stonenum = Marshal.load(Marshal.dump(@stonenum))
+    @history[depth].board = @board.map(&:dup) #Marshal.load(Marshal.dump(@board))
+    @history[depth].stonenum = @stonenum.map(&:dup) #Marshal.load(Marshal.dump(@stonenum))
     @board[pos] = color
     [-1, 0, 1].each do |dirx|
       (-ASIDE).step(ASIDE).to_a.each do |diry|
@@ -166,22 +169,22 @@ class Othello
         rev_count = revolution(pos, color) if $mode == MODE::REVOLUTION and [11, 18, 81, 88].include?(pos)
       end
     end
-    @stonenum[@turn] += count + rev_count + 1
-    @stonenum[opponent(@turn)] -= count + rev_count
+    @stonenum[@turn] += (count + rev_count + 1)
+    @stonenum[opponent(@turn)] -= (count + rev_count)
     @turn = opponent(@turn)
   end
 
   def unmakeMove (depth)
-    @board = Marshal.load(Marshal.dump(@history[depth].board))
-    @stonenum = Marshal.load(Marshal.dump(@history[depth].stonenum))
+    @board = @history[depth].board.map(&:dup) #Marshal.load(Marshal.dump(@history[depth].board))
+    @stonenum = @history[depth].stonenum.map(&:dup) #Marshal.load(Marshal.dump(@history[depth].stonenum))
     @turn = opponent(@turn)
   end
 
   def search (depth)
     moves = Array.new(MOVENUM)
     bestvalue = -INFINITY - 1
-    return getEvaluationValue if depth >= maxdepth
-    movenum = generateMoves(moves)
+    return getEvaluationValue if depth >= $maxdepth
+    moves, movenum = generateMoves(moves)
     if movenum == 0
       if isTerminalNode
         return getTerminalValue
@@ -196,7 +199,7 @@ class Othello
       unmakeMove(depth)
       if value > bestvalue
         bestvalue = value
-        nextmove = moves[i] if depth == 0
+        @nextmove = moves[i] if depth == 0
       end
     end
     return bestvalue

@@ -25,11 +25,11 @@ def turncolor (turn)
   turn + 1
 end
 def opponent (turn)
-  !turn
+  (turn + 1) % 2
 end
 # true, false
-TRUE = 1
-FALSE = 0
+#TRUE = 1
+#FALSE = 0
 # AI
 INFINITY = 1000 # 十分大きい数を無限大として扱う
 SEARCH_LIMIT_DEPTH = 128 # 探索深さの上限
@@ -43,3 +43,8 @@ end
 # GUI
 WINDOW_SIZE_X = 640
 WINDOW_SIZE_Y = 480
+# SCENE
+module SCENE
+  TITLE = 0
+  GAME = 4
+end
