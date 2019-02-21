@@ -1,5 +1,5 @@
 class Othello
-  attr_accessor :turn, :ply, :stonenum, :nextmove
+  attr_accessor :turn, :ply, :stonenum, :board, :nextmove
   def initialize
     @evalboard0 = [
       0,   0,   0,   0,   0,   0,   0,   0,   0,   0,
@@ -48,7 +48,7 @@ class Othello
   end
 
   def getPosition (x, y)
-    y * ASIDE + x
+    return y * ASIDE + x
   end
 
   def isLegalMove (pos)
@@ -144,22 +144,22 @@ class Othello
   end
 
   def makeMove (pos, depth)
-    color = turncolor(opponent(@turn))
+    color = turncolor(@turn)
     opponent_color = turncolor(opponent(@turn))
     count = 0
     rev_count = 0
-    @history[depth].board = @board.map(&:dup) #Marshal.load(Marshal.dump(@board))
-    @history[depth].stonenum = @stonenum.map(&:dup) #Marshal.load(Marshal.dump(@stonenum))
+    @history[depth].board = @board.map(&:dup)
+    @history[depth].stonenum = @stonenum.map(&:dup)
     @board[pos] = color
     [-1, 0, 1].each do |dirx|
       (-ASIDE).step(ASIDE).to_a.each do |diry|
         dir = dirx + diry
-        next if dir =- 0
+        next if dir == 0
         pos1 = pos + dir
         next if @board[pos1] != opponent_color
         begin
           pos1 += dir
-        end while @board[pos1] != opponent_color
+        end while @board[pos1] == opponent_color
         next if @board[pos1] != color
         begin
           pos1 -= dir
@@ -175,8 +175,8 @@ class Othello
   end
 
   def unmakeMove (depth)
-    @board = @history[depth].board.map(&:dup) #Marshal.load(Marshal.dump(@history[depth].board))
-    @stonenum = @history[depth].stonenum.map(&:dup) #Marshal.load(Marshal.dump(@history[depth].stonenum))
+    @board = @history[depth].board.map(&:dup)
+    @stonenum = @history[depth].stonenum.map(&:dup)
     @turn = opponent(@turn)
   end
 
@@ -207,5 +207,15 @@ class Othello
 
   def comPlayer
     value = search(0)
+  end
+
+  def randPlayer
+    moves = Array.new(MOVENUM)
+    moves, num = generateMoves(moves)
+    if num == 0
+      @nextmove = PASSMOVE
+    else
+      @nextmove = moves[rand % num]
+    end
   end
 end

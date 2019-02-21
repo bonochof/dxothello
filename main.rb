@@ -7,7 +7,7 @@ require_remote "othello.rb"
 require_remote "director.rb"
 
 director = Director.new
-scene = SCENE::GAME
+$scene = SCENE::TITLE
 
 Window.load_resources do
   Window.bgcolor = C_BLACK
@@ -16,12 +16,11 @@ Window.load_resources do
   director.initSE
 
   Window.loop do
-    case scene
+    case $scene
     when SCENE::TITLE
       director.title
     when SCENE::GAME
       director.game
     end
-    Window.draw_font(0, 0, "hello #{B}", Font.default, color: C_WHITE)
   end
 end

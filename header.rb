@@ -46,5 +46,5 @@ WINDOW_SIZE_Y = 480
 # SCENE
 module SCENE
   TITLE = 0
-  GAME = 4
+  GAME = 1
 end
