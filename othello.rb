@@ -152,7 +152,7 @@ class Othello
     @history[depth].stonenum = @stonenum.map(&:dup)
     @board[pos] = color
     [-1, 0, 1].each do |dirx|
-      (-ASIDE).step(ASIDE).to_a.each do |diry|
+      (-ASIDE).step(ASIDE, ASIDE).to_a.each do |diry|
         dir = dirx + diry
         next if dir == 0
         pos1 = pos + dir
