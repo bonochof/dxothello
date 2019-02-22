@@ -8,21 +8,21 @@ class Director
   @@STRCOLOR = C_BLUE
   @@STRFONTSIZE = 32
   @@exitFlag = 0
-  @@font = Font.new(28)
+  @@font = Font.new(28, "Consolas")
   @@mouse = Sprite.new(0, 0, Image.new(10, 10, C_WHITE))
-  @@menu0 = Menu.new(Window.width / 4, Window.height / 2, "Push Mouse", 64)
+  @@menu0 = Menu.new(Window.width / 5, Window.height / 2, "Push Start", 64, -240)
   @@menu1 = [
-    Menu.new(Window.width * 0 / 3, Window.height / 2, "3", 92),
-    Menu.new(Window.width * 1 / 3, Window.height / 2, "5", 92),
-    Menu.new(Window.width * 2 / 3, Window.height / 2, "7", 92)
+    Menu.new(Window.width * 0 / 3 + 60, Window.height / 2 + 40, "1", 92),
+    Menu.new(Window.width * 1 / 3 + 60, Window.height / 2 + 40, "3", 92),
+    Menu.new(Window.width * 2 / 3 + 60, Window.height / 2 + 40, "5", 92)
   ]
   @@menu2 = [
-    Menu.new(Window.width * 0 / 4, Window.height / 2, "Normal", 30),
-    Menu.new(Window.width * 1 / 4, Window.height / 2, "Handicap", 30),
-    Menu.new(Window.width * 2 / 4, Window.height / 2, "Weak", 30),
-    Menu.new(Window.width * 3 / 4, Window.height / 2, "Revolution", 30)
+    Menu.new(Window.width * 0 / 4 + 20, Window.height / 2, "Normal", 32, -40),
+    Menu.new(Window.width * 1 / 4 - 100, Window.height / 2 + 140, "Handicap", 32, -70),
+    Menu.new(Window.width * 2 / 4, Window.height / 2, "Weak", 32, -20),
+    Menu.new(Window.width * 3 / 4 - 100, Window.height / 2 + 140, "Revolution", 32, -100)
   ]
-  @@menu3 = Menu.new(Window.width / 3, Window.height / 2, "Start", 64)
+  @@menu3 = Menu.new(Window.width / 5, Window.height / 2, "Game Start", 64, -240)
 
   def initialize
     @menu = 0
@@ -51,27 +51,55 @@ class Director
     when MENU::TITLE
       if Input.mouse_push?(M_LBUTTON) and @@mouse === @@menu0
         @menu = MENU::DEPTH
+        Sound[:next].play
       end
       @@menu0.draw
     when MENU::DEPTH
-      if Input.mouse_push?(M_LBUTTON) and @@mouse === @@menu1
-        @menu = MENU::MODE
-        $maxdepth = 3
+      if Input.mouse_push?(M_LBUTTON)
+        if @@mouse === @@menu1[0]
+          $maxdepth = 1
+          @menu = MENU::MODE
+          Sound[:next].play
+        elsif @@mouse === @@menu1[1]
+          $maxdepth = 3
+          @menu = MENU::MODE
+          Sound[:next].play
+        elsif @@mouse === @@menu1[2]
+          $maxdepth = 5
+          @menu = MENU::MODE
+          Sound[:next].play
+        end
       end
+      Window.draw_font(20, Window.height / 2, "Select Computer Level (Search Depth)", @@font, :color=>C_BLACK)
       Menu.draw(@@menu1)
     when MENU::MODE
-      if Input.mouse_push?(M_LBUTTON) and @@mouse === @@menu2
-        @menu = MENU::START
-        $mode = MODE::NORMAL
+      if Input.mouse_push?(M_LBUTTON)
+        if @@mouse === @@menu2[0]
+          $mode = MODE::NORMAL
+          @menu = MENU::START
+          Sound[:next].play
+        elsif @@mouse === @@menu2[1]
+          $mode = MODE::HANDICAP
+          @menu = MENU::START
+          Sound[:next].play
+        elsif @@mouse === @@menu2[2]
+          $mode = MODE::WEAK
+          @menu = MENU::START
+          Sound[:next].play
+        elsif @@mouse === @@menu2[3]
+          $mode = MODE::REVOLUTION
+          @menu = MENU::START
+          Sound[:next].play
+        end
       end
+      Window.draw_font(20, Window.height / 2 - 40, "Select Game Mode", @@font, :color=>C_BLACK)
       Menu.draw(@@menu2)
     when MENU::START
       if Input.mouse_push?(M_LBUTTON) and @@mouse === @@menu3
-        @menu = MENU::TITLE
         init
-        showBoard
-        Window.draw_font(@@rx, @@ey / 2 - 20, "GAME START!!", @@font)
         $scene = SCENE::GAME
+        @menu = MENU::TITLE
+        Sound[:next].play
       end
       @@menu3.draw
     end
@@ -126,12 +154,26 @@ class Director
         Window.draw_circle_fill(@@sx + @@d * x + @@r, @@sy + @@d * y + @@r, @@r, color)
       end
     end
-    Window.draw_font(@@rx, ry, "○: #{@game.stonenum[BLACK_TURN]}", @@font)
+    Window.draw_font(@@rx, ry, "●: #{@game.stonenum[BLACK_TURN]}", @@font, :color=>C_BLACK)
     ry += rdy
-    Window.draw_font(@@rx, ry, "●: #{@game.stonenum[WHITE_TURN]}", @@font)
+    Window.draw_font(@@rx, ry, "●: #{@game.stonenum[WHITE_TURN]}", @@font, :color=>C_WHITE)
     ry += rdy * 2
-    Window.draw_font(@@rx, ry, "#{@game.ply} 手", @@font)
-    Window.draw_font(@@rx, @@ey, "Thinking...", @@font) if !@finish and @putflag
+    Window.draw_font(@@rx, ry, "#{@game.ply} 手", @@font, :color=>C_BLUE)
+    str = "Search-depth: #{$maxdepth}"
+    Window.draw_font(20, Window.height - 28 * 2, str, @@font, :color=>C_BLUE)
+    str = "Mode: "
+    case $mode
+    when MODE::NORMAL
+      str += "Normal"
+    when MODE::HANDICAP
+      str += "Handicap"
+    when MODE::WEAK
+      str += "Weak"
+    when MODE::REVOLUTION
+      str += "Revolution"
+    end
+    Window.draw_font(20, Window.height - 28, str, @@font, :color=>C_BLUE)
+    Window.draw_font(@@rx, @@ey, "Thinking...", @@font, :color=>C_BLUE) if !@finish and @putflag
   end
 
   def game
@@ -143,16 +185,17 @@ class Director
       else
         result = @game.stonenum[BLACK_TURN] - @game.stonenum[WHITE_TURN]
       end
+      showBoard
       if result == 0
-        Window.draw_font(@@rx, @@ey / 2 - 20, "DRAW!!", @@font)
+        Window.draw_font(@@rx, @@ey / 2 - 20, "DRAW!!", @@font, :color=>C_RED)
       else
-        Window.draw_font(@@rx, @@ey / 2 - 20, "#{(result > 0 ? "BLACK" : "WHITE")} WIN!!", @@font)
+        Window.draw_font(@@rx, @@ey / 2 - 20, "#{(result > 0 ? "BLACK" : "WHITE")} WIN!!", @@font, :color=>C_RED)
       end
+      Sound[:win].play
       @finish = true
     end
     if @finish
-      showBoard
-      Window.draw_font(@@rx, @@ey / 2 + 50, "Push Key!!", @@font)
+      Window.draw_font(@@rx, @@ey / 2 + 50, "Game Finish!!", @@font, :color=>C_BLUE)
       $scene = SCENE::TITLE if Input.mouse_push?(M_LBUTTON)
     else
       if @game.turn == @manturn
@@ -164,15 +207,19 @@ class Director
       if @putflag
         @game.makeMove(@game.nextmove, 0)
         if @game.nextmove == PASSMOVE
-          Window.draw_font(@@rx, @@ey / 2 - 20, "PASS!!", @@font)
+          Window.draw_font(@@rx, @@ey / 2 - 20, "PASS!!", @@font, :color=>C_BLUE)
         else
           @game.ply += 1
         end
         if @game.turn == @manturn
+          Sound[:put_com].play
         else
+          Sound[:put_man].play
         end
       end
       showBoard
+      Window.draw_font(@@rx, @@ey / 2 - 20, "PASS!!", @@font, :color=>C_BLUE) if @game.nextmove == PASSMOVE
+      Window.draw_font(@@rx, @@ey / 2 - 20, "Game Start!!", @@font, :color=>C_BLUE) if @game.ply == 0
     end
   end
 end

@@ -1,5 +1,6 @@
 class Othello
   attr_accessor :turn, :ply, :stonenum, :board, :nextmove
+
   def initialize
     @evalboard0 = [
       0,   0,   0,   0,   0,   0,   0,   0,   0,   0,
@@ -27,7 +28,7 @@ class Othello
     ]
     @turn = BLACK_TURN
     @ply = 0
-    @stonenum = [2, 2]
+    @stonenum = [2, ($mode == MODE::HANDICAP ? 6 : 2)]
     @board = [
       N, N, N, N, N, N, N, N, N, N, 
       N, 0, 0, 0, 0, 0, 0, 0, 0, N,
@@ -92,7 +93,7 @@ class Othello
   end
 
   def getTerminalValue
-    diff = stonenum[@turn] - stonenum[opponent(@turn)]
+    diff = @stonenum[@turn] - @stonenum[opponent(@turn)]
     if diff > 0
       return INFINITY
     elsif diff < 0
@@ -126,7 +127,7 @@ class Othello
   def revolution (num, color)
     count = 0
     for pos in [11, 18, 81, 88]
-      if @board[pos] > 0 and num != 11
+      if @board[pos] > 0 and num != pos
         case @board[pos]
         when B
           @board[pos] = W
