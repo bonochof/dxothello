@@ -179,7 +179,11 @@ class Director
   def game
     moves = Array.new(MOVENUM)
     moves, num = @game.generateMoves(moves)
-    if num == 0 and @game.isTerminalNode
+    if num == 0 and @game.isTerminalNode and !@finish
+      Sound[:win].play
+      @finish = true
+    end
+    if @finish
       if $mode == MODE::WEAK
         result = @game.stonenum[WHITE_TURN] - @game.stonenum[BLACK_TURN]
       else
@@ -191,12 +195,11 @@ class Director
       else
         Window.draw_font(@@rx, @@ey / 2 - 20, "#{(result > 0 ? "BLACK" : "WHITE")} WIN!!", @@font, :color=>C_RED)
       end
-      Sound[:win].play
-      @finish = true
-    end
-    if @finish
       Window.draw_font(@@rx, @@ey / 2 + 50, "Game Finish!!", @@font, :color=>C_BLUE)
-      $scene = SCENE::TITLE if Input.mouse_push?(M_LBUTTON)
+      if Input.mouse_push?(M_LBUTTON)
+        Sound[:next].play
+        $scene = SCENE::TITLE
+      end
     else
       if @game.turn == @manturn
         manPlayerGUI
